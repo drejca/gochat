@@ -1,0 +1,30 @@
+.messages-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.messages {
+  flex: 1;
+}
+
+.compose-message-container {
+  min-height: 80px;
+  width: 100%;
+}
+.compose-message-container.active {
+  flex: 2;
+}
+
+.message-area {
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+  font-family: Open Sans;
+  background-color: #818A98;
+  color: #fff;
+  border: none;
+  resize: none;
+  padding: 10px;
+  border-radius: 5px;
+}

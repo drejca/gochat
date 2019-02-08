@@ -1,0 +1,22 @@
+.App {
+  width: 100%;
+  background-color: #282c34;
+  min-height: 100vh;
+  color: #fff;
+
+  display: flex;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+.aside {
+  width: 250px;
+}
+
+.main-content {
+  flex: 1;
+  background-color: #373E48;
+  padding: 10px;
+}
