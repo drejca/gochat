@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/drejca/gochat"
 	"github.com/jackc/pgx"
+	"time"
 )
 
 var EntryNotFound = errors.New("Db entry not found")
@@ -152,8 +153,30 @@ func NewMessageRepository(conn *Conn) *MessageRepository {
 	return &MessageRepository{conn: conn}
 }
 
-func (m *MessageRepository) Store(ownerId int, channelId int, message string) error {
-	sql := `INSERT INTO message(owner_id, channel_id, message) VALUES($1, $2, $3)`
-	_, err := m.conn.Exec(sql, ownerId, channelId, message)
+func (m *MessageRepository) Store(ownerId int, channelId int, messageContent string) error {
+	sql := `INSERT INTO message(owner_id, channel_id, content, on_date) VALUES($1, $2, $3, $4)`
+	_, err := m.conn.Exec(sql, ownerId, channelId, messageContent, time.Now().UTC())
 	return err
+}
+
+func (m *MessageRepository) ChannelMessages(channelId int, before time.Time) ([]gochat.Message, error) {
+	var messages []gochat.Message
+
+	sql := `SELECT id, owner_id, channel_id, content, on_date FROM message WHERE channel_id = $1 AND on_date < $2 LIMIT 50`
+	rows, err := m.conn.Query(sql, channelId, before)
+	if err != nil {
+		return messages, err
+	}
+
+	for rows.Next() {
+		message := gochat.Message{}
+		err := rows.Scan(&message.Id, &message.OwnerId, &message.ChannelId, &message.Content, &message.OnDate)
+		if err != nil {
+			return messages, err
+		}
+
+		messages = append(messages, message)
+	}
+
+	return messages, nil
 }

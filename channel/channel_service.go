@@ -1,6 +1,9 @@
 package channel
 
-import "github.com/drejca/gochat"
+import (
+	"github.com/drejca/gochat"
+	"time"
+)
 
 type Service struct {
 	channelRepository gochat.ChannelRepository
@@ -64,4 +67,8 @@ func (s *Service) SendMessage(userId int, channelId int, content string) error {
 	}
 
 	return s.messageRepository.Store(user.Id, channel.Id, content)
+}
+
+func (s *Service) ChannelMessages(channelId int, before time.Time) ([]gochat.Message, error) {
+	return s.messageRepository.ChannelMessages(channelId, before)
 }

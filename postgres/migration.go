@@ -57,7 +57,8 @@ CREATE TABLE message (
 	id serial primary key,
 	owner_id int references app_user,
 	channel_id int references channel,
-	message text
+	content text,
+	on_date timestamp
 );`)
 }
 

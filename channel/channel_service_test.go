@@ -5,6 +5,7 @@ import (
 	"github.com/drejca/gochat/auth"
 	"github.com/drejca/gochat/postgres"
 	"testing"
+	"time"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -89,6 +90,42 @@ func TestSendMessageToChannel(t *testing.T) {
 	err = channelService.SendMessage(owner.Id, channel.Id, content)
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+func TestChannelMessages(t *testing.T) {
+	conn := postgresConnection(t)
+
+	postgres.Migrate(conn)
+
+	channelService := newChannelService(conn)
+	authService := auth.NewService(postgres.NewUserRepository(conn))
+
+	owner := setupUser(t, authService, "John", "randompassword123")
+
+	channel, err := channelService.CreateChannel(owner.Id, "general discord")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	content := `Hi`
+
+	err = channelService.SendMessage(owner.Id, channel.Id, content)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	messages, err := channelService.ChannelMessages(channel.Id, time.Now().UTC().Add(time.Microsecond))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(messages) != 1 {
+		t.Fatalf("expected one message got %d", len(messages))
+	}
+
+	if messages[0].Content != content {
+		t.Errorf("expected content to be %q, got %q", content, messages[0].Content)
 	}
 }
 
