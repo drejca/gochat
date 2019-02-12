@@ -21,7 +21,7 @@ func New() (*Conn, error) {
 	config.Host = "localhost"
 	config.User = "postgres"
 	config.Password = "postgres"
-	config.Database = "chatapp"
+	config.Database = "gochat"
 
 	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{ConnConfig: config})
 	if err != nil {
@@ -100,35 +100,14 @@ func (c *ChannelRepository) Find(id int) (gochat.Channel, error) {
 	return scanChannel(row)
 }
 
-func scanChannel(row *pgx.Row) (gochat.Channel, error) {
-	if row == nil {
-		return gochat.Channel{}, EntryNotFound
-	}
-
-	channel := gochat.Channel{}
-	err := row.Scan(&channel.Id, &channel.Name, &channel.OwnerId)
-	if err != nil {
-		return channel, err
-	}
-	return channel, nil
-}
-
-type ChannelUsersRepository struct {
-	conn *Conn
-}
-
-func NewChannelUsersRepository(conn *Conn) *ChannelUsersRepository {
-	return &ChannelUsersRepository{conn: conn}
-}
-
-func (c *ChannelUsersRepository) Store(channel gochat.Channel, user gochat.User) error {
+func (c *ChannelRepository) JoinToChannel(userId int, channelId int) error {
 	sql := `INSERT INTO channel_users(channel_id, app_user_id) VALUES($1, $2)`
-	_, err := c.conn.Exec(sql, channel.Id, user.Id)
+	_, err := c.conn.Exec(sql, channelId, userId)
 
 	return err
 }
 
-func (c *ChannelUsersRepository) GetChannelUsers(channelId int) ([]gochat.User, error) {
+func (c *ChannelRepository) ChannelUsers(channelId int) ([]gochat.User, error) {
 	var users []gochat.User
 
 	sql := `SELECT id, username FROM channel_users 
@@ -150,6 +129,19 @@ func (c *ChannelUsersRepository) GetChannelUsers(channelId int) ([]gochat.User, 
 	}
 
 	return users, nil
+}
+
+func scanChannel(row *pgx.Row) (gochat.Channel, error) {
+	if row == nil {
+		return gochat.Channel{}, EntryNotFound
+	}
+
+	channel := gochat.Channel{}
+	err := row.Scan(&channel.Id, &channel.Name, &channel.OwnerId)
+	if err != nil {
+		return channel, err
+	}
+	return channel, nil
 }
 
 type MessageRepository struct {

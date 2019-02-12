@@ -5,16 +5,15 @@ import "github.com/drejca/gochat"
 type Service struct {
 	channelRepository gochat.ChannelRepository
 	userRepository gochat.UserRepository
-	channelUsersRepository gochat.ChannelUsersRepository
 	messageRepository gochat.MessageRepository
 }
 
 func NewService(channelRepository gochat.ChannelRepository, userRepository gochat.UserRepository,
-	channelUsersRepository gochat.ChannelUsersRepository, messageRepository gochat.MessageRepository) *Service {
+	messageRepository gochat.MessageRepository) *Service {
+
 	return &Service{
 		channelRepository: channelRepository,
 		userRepository: userRepository,
-		channelUsersRepository: channelUsersRepository,
 		messageRepository: messageRepository,
 	}
 }
@@ -30,12 +29,12 @@ func (s *Service) CreateChannel(ownerId int, channelName string) (gochat.Channel
 		return channel, err
 	}
 
-	err = s.AddUserToChannel(user.Id, channel.Id)
+	err = s.JoinToChannel(user.Id, channel.Id)
 
 	return channel, err
 }
 
-func (s *Service) AddUserToChannel(userId int, channelId int) error {
+func (s *Service) JoinToChannel(userId int, channelId int) error {
 	channel, err := s.channelRepository.Find(channelId)
 	if err != nil {
 		return err
@@ -46,11 +45,11 @@ func (s *Service) AddUserToChannel(userId int, channelId int) error {
 		return err
 	}
 
-	return s.channelUsersRepository.Store(channel, user)
+	return s.channelRepository.JoinToChannel(user.Id, channel.Id)
 }
 
 func (s *Service) GetChannelUsers(channelId int) ([]gochat.User, error) {
-	return s.channelUsersRepository.GetChannelUsers(channelId)
+	return s.channelRepository.ChannelUsers(channelId)
 }
 
 func (s *Service) SendMessage(userId int, channelId int, content string) error {

@@ -39,7 +39,7 @@ func TestCreateChannel(t *testing.T) {
 	}
 }
 
-func TestAddUserToChannel(t *testing.T) {
+func TestJoinToChannel(t *testing.T) {
 	conn := postgresConnection(t)
 
 	postgres.Migrate(conn)
@@ -57,7 +57,7 @@ func TestAddUserToChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = channelService.AddUserToChannel(user.Id, channel.Id)
+	err = channelService.JoinToChannel(user.Id, channel.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +84,7 @@ func TestSendMessageToChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	content := `<p>Hi</p>`
+	content := `Hi`
 
 	err = channelService.SendMessage(owner.Id, channel.Id, content)
 	if err != nil {
@@ -103,10 +103,9 @@ func postgresConnection(t *testing.T) *postgres.Conn {
 func newChannelService(conn *postgres.Conn) *Service {
 	channelRepository := postgres.NewChannelRepository(conn)
 	userRepository := postgres.NewUserRepository(conn)
-	channelUsersRepository := postgres.NewChannelUsersRepository(conn)
 	messageRepository := postgres.NewMessageRepository(conn)
 
-	return NewService(channelRepository, userRepository, channelUsersRepository, messageRepository)
+	return NewService(channelRepository, userRepository, messageRepository)
 }
 
 func setupUser(t *testing.T, authService *auth.Service, username string, password string) gochat.User {
